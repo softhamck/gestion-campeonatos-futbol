@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${titulo}">Partidos</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-4">
+        <h1 th:text="${titulo}">Partidos del Grupo</h1>
+        
+        <!-- Info del grupo -->
+        <div class="alert alert-info" th:if="${grupo != null}">
+            <strong th:text="${grupo.nombre}">Grupo A</strong> - 
+            <span th:text="${grupo.campeonato.nombre}">Campeonato</span>
+            <br/>
+            <small>ID Grupo: <span th:text="${grupo.idGrupo}">1</span></small>
+        </div>
+        
+        <!-- Mensaje si no hay grupo -->
+        <div th:unless="${grupo != null}" class="alert alert-danger">
+            Error: No se encontró el grupo especificado.
+        </div>
+        
+        <!-- Botones de acción -->
+        <div class="mb-3" th:if="${grupo != null}">
+            <form th:action="@{/partidos/generarCalendario}" method="post" class="d-inline">
+                <input type="hidden" name="idGrupo" th:value="${grupo.idGrupo}"/>
+                <button type="submit" class="btn btn-primary">📅 Generar Calendario</button>
+            </form>
+            <a th:href="@{/partidos/tablaPosiciones/{id}(id=${grupo.idGrupo})}" 
+               class="btn btn-warning">🏆 Ver Tabla de Posiciones</a>
+            <a th:href="@{/grupos/listar/{id}(id=${grupo.campeonato.idCampeonato})}" 
+               class="btn btn-secondary">⬅ Volver a Grupos</a>
+        </div>
+        
+        <!-- Tabla de partidos -->
+        <div th:if="${#lists.isEmpty(partidos)}" class="alert alert-warning">
+            ⚠️ No hay partidos generados. Haz clic en <strong>"Generar Calendario"</strong> para crear los partidos del grupo.
+        </div>
+        
+        <table class="table table-striped table-bordered" th:unless="${#lists.isEmpty(partidos)}">
+            <thead class="table-dark">
+                <tr>
+                    <th>#</th>
+                    <th>🏠 Local</th>
+                    <th></th>
+                    <th>🚌 Visitante</th>
+                    <th>Resultado</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="partido : ${partidos}">
+                    <td th:text="${partido.idPartido}">1</td>
+                    <td th:text="${partido.equipoLocal.nombre}">Local</td>
+                    <td class="text-center"><strong>VS</strong></td>
+                    <td th:text="${partido.equipoVisitante.nombre}">Visitante</td>
+                    <td class="text-center">
+                        <span th:if="${partido.estado == 'JUGADO'}" class="fw-bold">
+                            <span th:text="${partido.golesLocal}">0</span> - 
+                            <span th:text="${partido.golesVisitante}">0</span>
+                        </span>
+                        <span th:unless="${partido.estado == 'JUGADO'}" class="text-muted">
+                            Pendiente
+                        </span>
+                    </td>
+                    <td>
+                        <span class="badge" 
+                              th:classappend="${partido.estado == 'PENDIENTE' ? 'bg-warning' : 'bg-success'}" 
+                              th:text="${partido.estado}">PENDIENTE</span>
+                    </td>
+                    <td>
+                        <a th:if="${partido.estado == 'PENDIENTE'}"
+                           th:href="@{/partidos/registrarResultado/{id}(id=${partido.idPartido})}" 
+                           class="btn btn-success btn-sm">
+                            ⚽ Registrar Resultado
+                        </a>
+                        <span th:if="${partido.estado == 'JUGADO'}" class="text-success">
+                            ✅ <span th:text="${partido.golesLocal}"></span>-<span th:text="${partido.golesVisitante}"></span>
+                        </span>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>

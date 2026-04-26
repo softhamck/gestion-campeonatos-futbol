@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${titulo}">Grupos</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-4">
+        <h1 th:text="${titulo}">Grupos del Campeonato</h1>
+        
+        <!-- Info del campeonato -->
+        <div class="card mb-4" th:if="${campeonato != null}">
+            <div class="card-body">
+                <h5 class="card-title" th:text="${campeonato.nombre}">Nombre Campeonato</h5>
+                <p class="card-text">
+                    📅 Fecha: <span th:text="${campeonato.fechaInicio}"></span> - 
+                    <span th:text="${campeonato.fechaFin}"></span>
+                </p>
+                <p class="card-text">
+                    📊 Estado: <span class="badge bg-warning" th:text="${campeonato.estado}">PENDIENTE</span>
+                </p>
+            </div>
+        </div>
+        
+        <!-- Formulario para generar grupos -->
+        <div class="card mb-4" th:if="${campeonato != null}">
+            <div class="card-body">
+                <h5 class="card-title">🎲 Generar Grupos Aleatorios</h5>
+                <form th:action="@{/grupos/generar}" method="post">
+                    <input type="hidden" name="idCampeonato" th:value="${campeonato.idCampeonato}"/>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label class="form-label">Cantidad de Grupos:</label>
+                            <input type="number" name="cantidadGrupos" class="form-control" 
+                                   min="1" max="10" value="2" required/>
+                        </div>
+                        <div class="col-md-6 d-flex align-items-end">
+                            <button type="submit" class="btn btn-success">🎲 Generar Grupos</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Lista de grupos -->
+        <div th:if="${#lists.isEmpty(grupos)}" class="alert alert-info">
+            No hay grupos generados. Selecciona la cantidad de grupos y haz clic en "Generar Grupos".
+        </div>
+        
+        <div th:each="grupo : ${grupos}" class="card mb-3">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0" th:text="${grupo.nombre}">Grupo A</h5>
+            </div>
+            <div class="card-body">
+                <h6>⚽ Equipos:</h6>
+                <ul class="list-group mb-3">
+                    <li th:each="equipo : ${grupo.equipos}" 
+                        class="list-group-item" 
+                        th:text="${equipo.nombre}">Nombre Equipo</li>
+                </ul>
+                
+                <!-- BOTONES CORREGIDOS -->
+                <a th:href="@{/partidos/listar/{id}(id=${grupo.idGrupo})}" 
+                   class="btn btn-info btn-sm">
+                    📅 Ver Partidos
+                </a>
+                <a th:href="@{/partidos/tablaPosiciones/{id}(id=${grupo.idGrupo})}" 
+                   class="btn btn-warning btn-sm">
+                    🏆 Tabla de Posiciones
+                </a>
+            </div>
+        </div>
+        
+        <a th:href="@{/campeonatos/listar}" class="btn btn-secondary mt-3">⬅ Volver a Campeonatos</a>
+    </div>
+</body>
+</html>
