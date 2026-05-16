@@ -63,4 +63,5 @@ public class EquipoController {
         servicio.eliminar(id);
         return "redirect:/equipos/listar";
     }
+    
 }

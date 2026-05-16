@@ -1,6 +1,8 @@
 package com.campeonato.gestioncampeonato.api;
 
+import com.campeonato.gestioncampeonato.interfaces.ICampeonato;
 import com.campeonato.gestioncampeonato.interfaces.IEquipo;
+import com.campeonato.gestioncampeonato.models.Campeonato;
 import com.campeonato.gestioncampeonato.models.Equipo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -10,11 +12,14 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/equipos")
-@CrossOrigin(origins = "*") // Permite peticiones desde cualquier origen
+@CrossOrigin(origins = "*")
 public class EquipoRestController {
     
     @Autowired
     private IEquipo equipoRepositorio;
+    
+    @Autowired
+    private ICampeonato campeonatoRepositorio;
     
     // ENDPOINT 1: Listar todos los equipos
     @GetMapping("/listar")
@@ -25,7 +30,7 @@ public class EquipoRestController {
                 .collect(Collectors.toList());
     }
     
-    // ENDPOINT 2: Buscar por nombre (CONSULTA CON FILTRO)
+    // ENDPOINT 2: Buscar por nombre
     @GetMapping("/buscarPorNombre")
     public List<EquipoDTO> buscarPorNombre(@RequestParam String nombre) {
         List<Equipo> equipos = equipoRepositorio.findAll();
@@ -35,7 +40,7 @@ public class EquipoRestController {
                 .collect(Collectors.toList());
     }
     
-    // ENDPOINT 3: Buscar por ciudad (CONSULTA CON FILTRO)
+    // ENDPOINT 3: Buscar por ciudad
     @GetMapping("/buscarPorCiudad")
     public List<EquipoDTO> buscarPorCiudad(@RequestParam String ciudad) {
         List<Equipo> equipos = equipoRepositorio.findAll();
@@ -63,7 +68,33 @@ public class EquipoRestController {
                 .orElse(null);
     }
     
-    // Método para convertir Entidad a DTO (evita problemas de serialización)
+    // ENDPOINT 6: Listar ciudades disponibles (para el select)
+    @GetMapping("/ciudades")
+    public List<String> listarCiudades() {
+        List<Equipo> equipos = equipoRepositorio.findAll();
+        return equipos.stream()
+                .map(Equipo::getCiudad)
+                .filter(ciudad -> ciudad != null && !ciudad.isEmpty())
+                .distinct()
+                .sorted()
+                .collect(Collectors.toList());
+    }
+    
+    // ENDPOINT 7: Listar campeonatos disponibles (para el select)
+    @GetMapping("/campeonatos")
+    public List<CampeonatoDTO> listarCampeonatos() {
+        List<Campeonato> campeonatos = campeonatoRepositorio.findAll();
+        return campeonatos.stream()
+                .map(c -> {
+                    CampeonatoDTO dto = new CampeonatoDTO();
+                    dto.setId(c.getIdCampeonato());
+                    dto.setNombre(c.getNombre());
+                    return dto;
+                })
+                .collect(Collectors.toList());
+    }
+    
+    // Método privado para convertir Equipo a EquipoDTO
     private EquipoDTO convertirADTO(Equipo equipo) {
         EquipoDTO dto = new EquipoDTO();
         dto.setId(equipo.getIdEquipo());
@@ -80,7 +111,7 @@ public class EquipoRestController {
     }
 }
 
-// DTO (Data Transfer Object) - Clase interna
+// DTO para Equipo
 class EquipoDTO {
     private Long id;
     private String nombre;
@@ -89,7 +120,6 @@ class EquipoDTO {
     private String nombreCampeonato;
     private String nombreGrupo;
     
-    // Getters y Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     
@@ -107,4 +137,16 @@ class EquipoDTO {
     
     public String getNombreGrupo() { return nombreGrupo; }
     public void setNombreGrupo(String nombreGrupo) { this.nombreGrupo = nombreGrupo; }
+}
+
+// DTO para Campeonato
+class CampeonatoDTO {
+    private Long id;
+    private String nombre;
+    
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    
+    public String getNombre() { return nombre; }
+    public void setNombre(String nombre) { this.nombre = nombre; }
 }
